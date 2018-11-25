@@ -1,19 +1,50 @@
 node {
 
-stage ('File create') {
+try       {currentBuild.result = "SUCCESS"
 
-build job: 'AA', parameters: [string(name: 'File', value: File_P)]
+stage ('File create') {build job: 'AA', parameters: [string(name: 'File', value: File_P)]}
 
-                      }
+stage ('File modify') {build job: 'BB', parameters: [string(name: 'File', value: File_P)]}
 
-stage ('File modify') {
+stage ('File delete') {build job: 'CC', parameters: [string(name: 'File', value: File_P)]}
 
-build job: 'BB', parameters: [string(name: 'File', value: File_P)]
+          }
 
-                      }
-stage ('File delete') {
+catch (e) {currentBuild.result = "FAILURE"}
 
-build job: 'CC', parameters: [string(name: 'File', value: File_P)]
+emailNotify()
 
-                      }
-     }
+}
+
+ 
+
+def emailNotify() {
+
+if ('SUCCESS'.equals(currentBuild.result.toString())){
+
+    emailext (subject: "PASSED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+
+                 body: "Console output: ${env.BUILD_URL}console".toString(),
+
+                   from: 'prigmaster@gmail.com',
+
+                      to: 'prigmaster@gmail.com'
+
+              )
+
+                                                   }
+
+if ('FAILURE'.equals(currentBuild.result.toString())) {
+
+    emailext (subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+
+                 body: "Console output: ${env.BUILD_URL}console".toString(),
+
+                   from: 'prigmaster@gmail.com',
+                      to: 'prigmaster@gmail.com'
+
+              )
+
+                                                       }
+
+                     }
